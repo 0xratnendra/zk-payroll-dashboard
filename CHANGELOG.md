@@ -13,6 +13,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Treasury Balance Buffer Enforcement (#679)**: Pure checker `lib/treasury/balanceBuffer.ts` using bigint minor-unit math (`max(percent of balance, minBufferAmount)`, 5%/25k default) with `sufficient`/`buffer_breach`/`insufficient`/`invalid_input` verdicts, safe override gating, and `assertTreasuryBalanceBuffer`.
 - **Draft Payroll Comparison Snapshot (#677)**: Snapshot utility `src/payroll/draftComparisonSnapshot.ts` reusing `computeBatchDiff`/`summarizeBatchDiff` for before/after/delta totals, staleness/revision checks, `requiresReapproval`/blocked rows, and privacy-safe audit summaries.
 
+- **Dashboard Payment Asset Compatibility Validation (#626)**: Dashboard-layer check verifying that the Stellar assets intended to pay employees are compatible before a payroll run is executed.
+  - Pure evaluation module `lib/assets/paymentAssetCompatibility.ts` with `evaluatePaymentAssetCompatibility` and `assertPaymentAssetCompatibility`, reusing the existing asset code / issuer validators and the supported-asset allowlist
+  - Compatibility rules: every assigned asset is on the supported allowlist, issued assets use the supported canonical issuer (native XLM carries none), and the same code never resolves to two or more different issuers across payment targets
+  - `compatible` / `warning` / `incompatible` states with actionable blockers (issuer conflicts and canonical mismatches) and advisory warnings (ignored unsupported assets, skipped malformed targets), plus a remediation link to `/settings/assets`
+  - Privacy-safe: evaluates only asset codes, issuer accounts, and opaque counts — employee identities, wallet addresses, and payment amounts never enter the result or error messages
+  - Dashboard component `DashboardPaymentAssetCompatibilityCheck` rendering an accessible `role="status"` panel with per-state badges, blockers, compatible-asset chips, and a remediation link, mounted in `DashboardHome` inside an `ErrorBoundary`
+  - Typed domain contracts in `types/assets.ts` with `PaymentAssetCompatibilityStatus`, `PaymentAssetTarget`, and `PaymentAssetCompatibilityResult`
+  - Focused unit and component test suites in `__tests__/payment-asset-compatibility.test.ts` and `__tests__/dashboard-payment-asset-compatibility.test.tsx` covering success, failure, and edge cases (issuer conflicts, canonical mismatch, native XLM carrying an issuer, malformed targets)
+
 - **Dashboard Treasury Liquidity Reserve Monitoring (#630)**: Dashboard card showing whether the treasury can fund the next payroll run and how the balance compares with a target reserve.
   - Pure evaluation module `lib/treasury/liquidityReserve.ts` with `evaluateTreasuryLiquidityReserve`, returning the reserve ratio, payroll runs covered, shortfall, and amount below target; money math runs on 7-decimal integer base units rather than floats
   - `Healthy` / `Low` / `Critical` statuses: at or above the target reserve, below target but covering the next run, and unable to cover the next run (with the shortfall amount)
