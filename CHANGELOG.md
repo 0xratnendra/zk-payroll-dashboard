@@ -8,7 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- **Dashboard Contract Pause Mutation Guard**: Enforces disabling of payroll mutation actions across dashboard layers while smart contracts or company operations are paused.
+- **Audit Grant Revocation Status & Timestamp in Dashboard Layer (#515)**: Surfaces immutable revocation timestamps and status badges for third-party compliance audit grants in the dashboard layer.
+  - Added `AuditGrantRevocationStatus` component (`components/features/audit/AuditGrantRevocationStatus.tsx` and re-export in `components/audit/AuditGrantRevocationStatus.tsx`) rendering accessible `role="status"` badges, alert banners, and inline timestamps with zero employee salary / PII leakage.
+  - Enhanced `AuditGrantScopeDetailsDrawer` (`components/features/audit/AuditGrantScopeDetailsDrawer.tsx`) to support `revokedAt`, `revokedBy`, and `revocationReason`, rendering prominent revocation alerts, timestamp details in the auditor metadata card, and disabling redundant "Revoke Grant" and "Extend Grant" actions when already revoked.
+  - Added Audit Grants overview dashboard page at `/audit` (`app/audit/page.tsx`) with lifecycle statistics (total, active, revoked), filter controls, and tabular revocation metadata.
+  - Updated `AuditExportWizard` (`components/features/audit/AuditExportWizard.tsx`) to display revocation details and safely block audit packet exports when grants are revoked.
+  - Comprehensive unit and integration test suite (`__tests__/audit-grant-revocation.test.tsx`) covering active cases, revoked cases, fallback boundary timestamps, and zero-PII privacy assertions.
+- **Dashboard Contract Pause Mutation Guard (#779)**: Enforces disabling of payroll mutation actions across dashboard layers while smart contracts or company operations are paused.
   - Pure evaluation module `src/payroll/contractPauseGuard.ts` and re-export `lib/payroll/contractPauseGuard.ts` with `canPerformMutation`, `assertMutationAllowed`, `isContractPausedForCategory`, and `ContractPausedError`
   - Structured error codes (`CONTRACT_PAUSED`, `MUTATION_DISABLED_CONTRACTS_PAUSED`) with actionable remediation guidance (`/admin`) and suggested action to resume operations
   - Zero private financial data leaks: guarantees no employee records, identities, wallet addresses, or salary numbers are exposed in error messages, tooltips, or diagnostic reports
